@@ -1,4 +1,14 @@
 <?php
+session_start();
+
+//クッキー情報が存在してたら（自動ログイン）
+// $_POSTにログイン情報を保存します
+if (isset($_COOKIE["email"]) && !empty($_COOKIE["email"])){
+  $_POST["email"] = $_COOKIE["email"];
+  $_POST["password"] = $_COOKIE["password"];
+  $_POST["save"] = "on";
+
+}
 
 //DBに接続
 require('dbconnect.php');
@@ -19,10 +29,35 @@ if (isset($_POST) && !empty($_POST)){
 
     //1行取得
     $member = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo "<pre>";
-    var_dump($member);
-    echo "</pre>";
+    // echo "<pre>";
+    // var_dump($member);
+    // echo "</pre>";
     
+    if ($member == false){
+      // 認証失敗
+      $error["login"] = "failed";
+    }else{
+      // 認証成功
+      // 1.セッション変数に、会員のidを保存
+      $_SESSION["id"] = $member["member_id"];
+
+      // 2.ログインした時間をセッション変数の保存
+      $_SESSION["time"] = time();
+
+      // 3.自動ログインの処理
+      if ($_POST["save"] == "on"){
+        //クッキーにログイン情報を記録
+        // setcookie(保存したい名前,保存したい値,保存したい期間：秒数)
+        setcookie('email',$_POST["email"], time()+60*60*24*14);
+        setcookie('password',$_POST["password"], time()+60*60*24*14);
+
+      }
+
+      // 4.ログイン後の画面に移動
+      header("Location: index.php");
+      exit();
+    }
+
   } catch (Exception $e) {
     
   }
@@ -90,6 +125,16 @@ if (isset($_POST) && !empty($_POST)){
               <input type="password" name="password" class="form-control" placeholder="">
             </div>
           </div>
+          <!-- 自動ログイン -->
+          <div class="form-group">
+            <label class="col-sm-4 control-label">自動ログイン</label>
+            <div class="col-sm-8">
+              <input type="checkbox" name="save">オンにする
+            </div>
+          </div>
+          <?php if((isset($error["login"])) && ($error["login"]== 'failed')){ ?>
+              <p class="error">* emailかパスワードが間違っています。</p>
+          <?php } ?>
           <input type="submit" class="btn btn-default" value="ログイン">
         </form>
       </div>
