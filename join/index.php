@@ -1,6 +1,10 @@
 <?php
   session_start();  //SESSIONを使う時は絶対必要
 
+  //DBに接続
+  require('../dbconnect.php');
+
+
   //　書き直し処理（check.phpで書き直し、というボタンが押された時）
   if (isset($_GET['action']) && $_GET['action'] == 'rewrite'){
 
@@ -50,53 +54,69 @@
     // $errorという変数が存在してなかった場合、入力が正常と認識
     if (!isset($error)){
 
-      //画像の拡張子チェック
-      // jpg,png,gifはOK
-      // substr...文字列から範囲指定して一部分の文字を切り出す関数
-      // substr(文字列、切り出す文字のスタートの数) マイナスの場合は、末尾からn文字目
-      // 例) 1.pngがファイル名の場合、$extにはpngが代入される
+      // emailの重複チェック
+      // DBに同じemailの登録があるか確認
+      try {
+        // 検索条件にヒットした件数を取得するSQL文
+        // COUNT() SQL文の関数。ヒットした数を取得
+        // as 別名　取得したデータに別な名前を付けて扱いやすいようにする
+        $sql = "SELECT COUNT(*) as `cnt` FROM `members` WHERE `email`=?";
 
-      $ext = substr($_FILES['picture_path']['name'],-3);
+        // sql文実行
+        $data = array($_POST["email"]);
+        $stmt = $dbh->prepare($sql);
+        $stmt->execute($data);
 
-      if (($ext == 'png') || ($ext == 'jpg') || ($ext == 'gif')){
-        //画像のアップロード処理
-        // 例) eriko1.pngを指定した時　$picture_nameの中身は20171222142530eriko1.pngというような文字列が代入される
-        //ファイル名の決定
-        $picture_name = date('YmdHis') . $_FILES['picture_path']['name'];
+        //件数取得
+        $count = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        //アップロード(フォルダに書き込み権限がないと、保存されない！！)
-        // move_uploaded_file(アップロードしたいファイル,サーバのどこにどういう名前でアップロードするか指定)
-        move_uploaded_file($_FILES['picture_path']['tmp_name'], '../picture_path/'.$picture_name);
+        if ($count['cnt'] > 0){
+          //重複エラー
+          $error['email'] = "duplicated";
+        }
 
-        //SESSION変数に入力された値を保存（どこの画面からでも使用できる！）
-        // 注意！必ず、ファイルの一番上に、session_strat();と書く
-        // POST送信された情報をjoinというキー指定で保存
-        $_SESSION['join'] = $_POST;
-        $_SESSION['join']['picture_path'] = $picture_name;
-
-        //check.phpに移動
-        header('Location: check.php');
-
-        //これ以下のコードを無駄に処理しないように、このページの処理を終了させる
-        exit();
-
-      }else{
-        $error["image"] = 'type';
+      } catch (Exception $e) {
+        
       }
 
+      if (!isset($error)){
+        //画像の拡張子チェック
+        // jpg,png,gifはOK
+        // substr...文字列から範囲指定して一部分の文字を切り出す関数
+        // substr(文字列、切り出す文字のスタートの数) マイナスの場合は、末尾からn文字目
+        // 例) 1.pngがファイル名の場合、$extにはpngが代入される
+
+        $ext = substr($_FILES['picture_path']['name'],-3);
+
+        if (($ext == 'png') || ($ext == 'jpg') || ($ext == 'gif')){
+          //画像のアップロード処理
+          // 例) eriko1.pngを指定した時　$picture_nameの中身は20171222142530eriko1.pngというような文字列が代入される
+          //ファイル名の決定
+          $picture_name = date('YmdHis') . $_FILES['picture_path']['name'];
+
+          //アップロード(フォルダに書き込み権限がないと、保存されない！！)
+          // move_uploaded_file(アップロードしたいファイル,サーバのどこにどういう名前でアップロードするか指定)
+          move_uploaded_file($_FILES['picture_path']['tmp_name'], '../picture_path/'.$picture_name);
+
+          //SESSION変数に入力された値を保存（どこの画面からでも使用できる！）
+          // 注意！必ず、ファイルの一番上に、session_strat();と書く
+          // POST送信された情報をjoinというキー指定で保存
+          $_SESSION['join'] = $_POST;
+          $_SESSION['join']['picture_path'] = $picture_name;
+
+          //check.phpに移動
+          header('Location: check.php');
+
+          //これ以下のコードを無駄に処理しないように、このページの処理を終了させる
+          exit();
+
+        }else{
+          $error["image"] = 'type';
+        }
+
+      } 
     }
-
-    
-
-
-
-
-
-
-
   }
-
- 
 
 
 ?>
@@ -166,6 +186,10 @@
               <input type="email" name="email" class="form-control" placeholder="例： seed@nex.com">
               <?php if((isset($error["email"])) && ($error["email"]== 'blank')){ ?>
               <p class="error">* Emailを入力してください。</p>
+              <?php } ?>
+
+              <?php if((isset($error["email"])) && ($error["email"]== 'duplicated')){ ?>
+              <p class="error">* 入力されたEmailは登録済みです。</p>
               <?php } ?>
             </div>
           </div>
