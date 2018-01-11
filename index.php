@@ -15,6 +15,36 @@
       exit();
   }
 
+  // --------POST送信されていたら、つぶやきをINSERTで保存
+  // $_POST["tweet"] => "" $_POSTが空だとおもわれない
+  // $_POST["tweet"] => "" $_POST["tweet"]が空だと認識される
+
+  if (isset($_POST) && !empty($_POST)){
+
+    //入力チェック
+    if ($_POST["tweet"] == ""){
+      $error["tweet"] = "blank";
+    }
+
+    if (!isset($error)){
+      //SQL文作成
+      // tweet=つぶやいた内容
+      // member_id=ログインした人のid
+      // reply_tweet_id=-1
+      // created=現在日時（now()を使用）
+      // modified=現在日時（now()を使用）
+      
+      $sql = "INSERT INTO `tweets` (`tweet`,`member_id`,`reply_tweet_id`,`created`)VALUES(?,?,?,now())";
+
+
+      //SQL文実行
+      $data = array($_POST["tweet"],$_SESSION["id"],-1);
+      $stmt = $dbh->prepare($sql);
+      $stmt->execute($data);
+
+    }
+  }
+
   //--------- 表示用のデータ取得 ----------------------
   try {
     // ログインしている人の情報を取得
@@ -82,6 +112,9 @@
               <label class="col-sm-4 control-label">つぶやき</label>
               <div class="col-sm-8">
                 <textarea name="tweet" cols="50" rows="5" class="form-control" placeholder="例：Hello World!"></textarea>
+                <?php if (isset($error) && ($error["tweet"] == "blank")){ ?>
+                  <p class="error">なにかつぶやいてください。</p>
+                <?php  } ?>
               </div>
             </div>
           <ul class="paging">
