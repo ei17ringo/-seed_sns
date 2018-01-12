@@ -6,6 +6,18 @@
   // ヒント2:送信されてるtweet_idを使用して、SQL文でDBからデータを１件取得
   // ヒント3:取得できたデータを、一覧の１行分の表示を参考に、表示してみる
 
+  // DBの接続
+  require('dbconnect.php');
+
+  // SQL文の作成
+  $sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id`=`members`.`member_id` WHERE `tweets`.`tweet_id`=".$_GET["tweet_id"];
+
+  // SQL文実行
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute();
+
+  // 個別ページに表示するデータを取得
+  $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -54,14 +66,21 @@
     <div class="row">
       <div class="col-md-4 col-md-offset-4 content-margin-top">
         <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="100" height="100">
-          <p>投稿者 : <span class="name"> Seed kun </span></p>
+          <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="100" height="100">
+          <p>投稿者 : <span class="name"> <?php echo $one_tweet["nick_name"]; ?> </span></p>
           <p>
             つぶやき : <br>
-            つぶやき４つぶやき４つぶやき４
+            <?php echo $one_tweet["tweet"]; ?>
           </p>
           <p class="day">
-            2016-01-28 18:04
+            <?php 
+              $modify_date = $one_tweet["modified"];
+              // strtotime 文字型のデータを日時型に変換できる
+              $modify_date = date("Y-m-d H:i",strtotime($modify_date));
+
+              echo $modify_date; 
+
+              ?>
             [<a href="#" style="color: #F33;">削除</a>]
           </p>
         </div>
