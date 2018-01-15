@@ -1,19 +1,24 @@
 <?php
-  session_start();
+  // session_start();
+
+  require('function.php');
+
+  //ログインチェック
+  login_check(); 
 
   // DBの接続
   require('dbconnect.php');
 
-  //ログインチェック
-  if (isset($_SESSION['id'])){
-      //ログインしている
+  // //ログインチェック
+  // if (isset($_SESSION['id'])){
+  //     //ログインしている
   
-  }else{
-      // ログインしていない
-      // ログイン画面へとばす
-      header("Location: login.php");
-      exit();
-  }
+  // }else{
+  //     // ログインしていない
+  //     // ログイン画面へとばす
+  //     header("Location: login.php");
+  //     exit();
+  // }
 
   // --------POST送信されていたら、つぶやきをINSERTで保存
   // $_POST["tweet"] => "" $_POSTが空だとおもわれない
@@ -61,7 +66,8 @@
     // 一覧用の情報を取得
     // テーブル結合
     // ORDER BY `tweets`.`modified` DESC 最新順に並べ替え
-    $sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id`=`members`.`member_id` ORDER BY `tweets`.`modified` DESC";
+    // 論理削除に対応 delete_flag = 0のものだけ取得
+    $sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id`=`members`.`member_id` WHERE `delete_flag`=0 ORDER BY `tweets`.`modified` DESC";
 
     $stmt = $dbh->prepare($sql);
     $stmt->execute();
@@ -178,7 +184,7 @@
               ?>
             </a>
             [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
+            [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
           </p>
         </div>
         <?php

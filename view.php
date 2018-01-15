@@ -1,5 +1,10 @@
 <?php
 
+ require('function.php');
+
+  //ログインチェック
+  login_check(); 
+
   // 宿題:個別ページの表示を完成させましょう
   
   // ヒント:$_GET["tweet_id"] の中に、表示したいつぶやきのtweet_idが格納されている
