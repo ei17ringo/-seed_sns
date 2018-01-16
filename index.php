@@ -82,6 +82,38 @@
       if ($one_tweet == false){
         break;
       }else{
+        // like数を求めるSQL文
+        $like_sql = "SELECT COUNT(*) as `like_count` FROM `likes` WHERE `tweet_id`=".$one_tweet["tweet_id"];
+
+        // SQL文実行
+        $like_stmt = $dbh->prepare($like_sql);
+        $like_stmt->execute();
+
+        $like_number = $like_stmt->fetch(PDO::FETCH_ASSOC);
+
+        // $one_tweetの中身
+        // $one_tweet["tweet"] つぶやき
+        // $one_tweet["member_id"] つぶやいた人のid
+        // $one_tweet["nick_name"] つぶやいた人のニックネーム
+        // $one_tweet["picture_path"] つぶやいた人のプロフィール画像
+        // $one_tweet["modified"] つぶやいた日時
+
+        // 一行分のデータに新しいキーを用意して、like数を代入
+        $one_tweet["like_count"] = $like_number["like_count"];
+        
+        
+        // ログインしている人がLikeしているかどうかの情報を取得
+        $login_like_sql = "SELECT COUNT(*) as `like_count` FROM `likes` WHERE `tweet_id`=".$one_tweet["tweet_id"]." AND `member_id`=".$_SESSION["id"];
+
+        //SQL文実行
+        $login_like_stmt = $dbh->prepare($login_like_sql);
+        $login_like_stmt->execute();
+
+        // フェッチして取得
+        $login_like_number = $login_like_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $one_tweet["login_like_flag"] = $login_like_number["like_count"];
+
         //データが取得できている
         $tweet_list[] = $one_tweet;
       }
@@ -170,7 +202,20 @@
           <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48">
           <p>
             <?php echo $one_tweet["tweet"]; ?><span class="name"> (<?php echo $one_tweet["nick_name"]; ?>) </span>
-            [<a href="#">Re</a>]
+            [<a href="#">Re</a>] 
+
+
+
+            <?php if ($one_tweet["login_like_flag"] == 0){ ?>
+              <a href="#"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>Like</a> 
+            <?php }else{ ?>
+              <a href="#"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>UnLike</a>
+            <?php } ?>
+            
+
+
+
+            <?php if($one_tweet["like_count"] > 0){echo $one_tweet["like_count"];} ?>
           </p>
           <p class="day">
             <a href="view.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>">
