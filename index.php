@@ -228,8 +228,10 @@
 
               ?>
             </a>
+            <?php if ($_SESSION["id"] == $one_tweet["member_id"]){ ?>
             [<a href="#" style="color: #00994C;">編集</a>]
             [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
+            <?php } ?>
             <?php if($one_tweet["reply_tweet_id"] > 0){ ?>
             [<a href="view.php?tweet_id=<?php echo $one_tweet["reply_tweet_id"]; ?>" style="color: #a9a9a9;">返信元のメッセージを表示</a>]
             <?php } ?>
