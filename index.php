@@ -240,6 +240,9 @@
       </div>
 
       <div class="col-md-8 content-margin-top">
+      <!-- <div class="msg_header">
+        <a href="#">Followers<span class="badge badge-pill badge-default">10</span></a> <a href="#">Following<span class="badge badge-pill badge-default">11</span></a>
+      </div> -->
         <?php 
           foreach ($tweet_list as $one_tweet) { 
         ?>
@@ -254,9 +257,9 @@
 
 
             <?php if ($one_tweet["login_like_flag"] == 0){ ?>
-              <a href="like.php?like_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>Like</a> 
+              <a href="like.php?like_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>&page=<?php echo $page; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>Like</a> 
             <?php }else{ ?>
-              <a href="like.php?unlike_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>UnLike</a>
+              <a href="like.php?unlike_tweet_id=<?php echo $one_tweet["tweet_id"]; ?>&page=<?php echo $page; ?>"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i>UnLike</a>
             <?php } ?>
             
 
