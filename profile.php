@@ -1,3 +1,29 @@
+<?php
+  session_start();
+
+  // DBの接続
+  require('dbconnect.php');
+
+  // GET送信された、member_idをつかって、プロフィール情報をmembersテーブルから取得
+  $sql = "SELECT * FROM `members` WHERE `member_id`=".$_GET["member_id"];
+
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute();
+
+  $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
+
+//フォロー処理
+// profile.php?follow_id=7 というリンクが推された＝フォローボタンが押された
+  if (isset($_GET["follow_id"])){
+    //follow情報を記録するSQL文を作成
+    $sql = "INSERT INTO `follows` (`member_id`, `follower_id`) VALUES (?, ?);";
+    $data = array($_SESSION["id"],$_GET["follow_id"]);
+    $fl_stmt = $dbh->prepare($sql);
+    $fl_stmt->execute($data);
+  }
+
+
+?>
 <!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -42,11 +68,14 @@
   <div class="container">
     <div class="row">
       <div class="col-md-3 content-margin-top">
-        <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="250" height="250">
-        <h3>Seed kun</h3>
-        <button class="btn btn-block btn-default">フォロー</button>
+        <img src="picture_path/<?php echo $profile_member["picture_path"]; ?>" width="250" height="250">
+        <h3><?php echo $profile_member["nick_name"]; ?></h3>
+        <?php if($_SESSION["id"] != $profile_member["member_id"]){ ?>
+        <a href="profile.php?member_id=<?php echo $profile_member["member_id"]; ?>&follow_id=<?php echo $profile_member["member_id"]; ?>">
+        <button class="btn btn-block btn-default">フォロー</button></a>
+        <?php } ?>
         <br>
-        <a href="#">&laquo;&nbsp;一覧へ戻る</a>
+        <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
       </div>
       <div class="col-md-9 content-margin-top">
         <div class="msg">
