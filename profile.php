@@ -12,6 +12,25 @@
 
   $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
 
+  //一覧データを取得
+  $sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id`=`members`.`member_id` WHERE `delete_flag`=0 AND `tweets`.`member_id`=".$_GET["member_id"]." ORDER BY `tweets`.`modified` DESC ";
+
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute();
+
+  // 一覧表示用の配列を用意
+  $tweet_list = array();
+
+  //　複数行のデータを取得するためループ
+  while (1) {
+    $one_tweet = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($one_tweet == false){
+      break;
+    }else{
+      //データが取得できている
+      $tweet_list[] = $one_tweet;
+    }
+  }
 //フォロー処理
 // profile.php?follow_id=7 というリンクが推された＝フォローボタンが押された
   if (isset($_GET["follow_id"])){
@@ -78,56 +97,29 @@
         <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
       </div>
       <div class="col-md-9 content-margin-top">
+        <?php foreach ($tweet_list as $one_tweet) { ?>  
         <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="100" height="100">
-          <p>投稿者 : <span class="name"> Seed kun </span></p>
+          <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="100" height="100">
+          <p>投稿者 : <span class="name"> <?php echo $one_tweet["nick_name"]; ?> </span></p>
           <p>
             つぶやき : <br>
-            つぶやき４つぶやき４つぶやき４
+            <?php echo $one_tweet["tweet"]; ?>
           </p>
           <p class="day">
-            2016-01-28 18:04
-            [<a href="#" style="color: #F33;">削除</a>]
+            <?php 
+              $modify_date = $one_tweet["modified"];
+              // strtotime 文字型のデータを日時型に変換できる
+              $modify_date = date("Y-m-d H:i",strtotime($modify_date));
+
+              echo $modify_date; 
+
+              ?>
+            <?php if ($_SESSION["id"] == $one_tweet["member_id"]){ ?>
+            [<a onclick="return confirm('削除します、よろしいですか？');" href="delete.php?tweet_id=<?php echo $one_tweet["tweet_id"]; ?>" style="color: #F33;">削除</a>]
+            <?php } ?>
           </p>
         </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="100" height="100">
-          <p>投稿者 : <span class="name"> Seed kun </span></p>
-          <p>
-            つぶやき : <br>
-            つぶやき４つぶやき４つぶやき４
-          </p>
-          <p class="day">
-            2016-01-28 18:04
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="100" height="100">
-          <p>投稿者 : <span class="name"> Seed kun </span></p>
-          <p>
-            つぶやき : <br>
-            つぶやき４つぶやき４つぶやき４
-          </p>
-          <p class="day">
-            2016-01-28 18:04
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="100" height="100">
-          <p>投稿者 : <span class="name"> Seed kun </span></p>
-          <p>
-            つぶやき : <br>
-            つぶやき４つぶやき４つぶやき４
-          </p>
-          <p class="day">
-            2016-01-28 18:04
-            [<a href="#" style="color: #F33;">削除</a>]
-          </p>
-        </div>
-          
-        
+        <?php } ?>
       </div>
     </div>
   </div>
