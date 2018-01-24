@@ -13,7 +13,7 @@
   $profile_member = $stmt->fetch(PDO::FETCH_ASSOC);
 
   //一覧データを取得
-  $sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` FROM `tweets` INNER JOIN `members` ON `tweets`.`member_id`=`members`.`member_id` WHERE `delete_flag`=0 AND `tweets`.`member_id`=".$_SESSION["id"]." ORDER BY `tweets`.`modified` DESC ";
+  $sql = "SELECT * FROM `members` INNER JOIN `follows` ON `members`.`member_id` = `follows`.`member_id` WHERE `follows`.`follower_id` = ".$_SESSION["id"]." ORDER BY `follows`.`created` DESC";
 
   $stmt = $dbh->prepare($sql);
   $stmt->execute();
@@ -27,6 +27,14 @@
     if ($one_tweet == false){
       break;
     }else{
+      //following_flagを用意して、自分もフォローしていたら1,フォローしてなかったら0を代入する
+      $fl_flag_sql = "SELECT COUNT(*) as `cnt` FROM `follows` WHERE `member_id`=".$_SESSION["id"]." AND `follower_id`=".$one_tweet["member_id"];
+      $fl_stmt = $dbh->prepare($fl_flag_sql);
+      $fl_stmt->execute();
+      $fl_flag = $fl_stmt->fetch(PDO::FETCH_ASSOC);
+
+      $one_tweet["following_flag"]=$fl_flag["cnt"];
+
       //データが取得できている
       $tweet_list[] = $one_tweet;
     }
@@ -39,6 +47,9 @@
     $data = array($_SESSION["id"],$_GET["follow_id"]);
     $fl_stmt = $dbh->prepare($sql);
     $fl_stmt->execute($data);
+
+    //フォロー押す前の状態に戻す（再読込で、再度フォロー処理が動くのを防ぐ）
+    header("Location: follow.php");
   }
 
 
@@ -98,14 +109,21 @@
       </div>
       <div class="col-md-9 content-margin-top">
         <div class="msg_header">
-        <a href="#">Followers<span class="badge badge-pill badge-default">2</span></a>
+        <a href="#">Followers<span class="badge badge-pill badge-default"><?php 
+        //count関数：配列にいくつデータた存在しているか数えてくれる関数
+        echo count($tweet_list); ?></span></a>
         </div>
         <?php foreach ($tweet_list as $one_tweet) { ?>  
         <div class="msg">
           <img src="picture_path/<?php echo $one_tweet["picture_path"]; ?>" width="48" height="48">
           <p> <span class="name"> <?php echo $one_tweet["nick_name"]; ?> </span></p>
-          <a href="profile.php?member_id=<?php echo $profile_member["member_id"]; ?>&follow_id=<?php echo $profile_member["member_id"]; ?>">
+
+          <?php if ($one_tweet["following_flag"] == 0){ ?>
+          <a href="follow.php?follow_id=<?php echo $one_tweet["member_id"]; ?>">
         <button class="btn btn-default">フォロー</button></a>
+        <?php }else{ ?>
+          <button class="btn btn-default">フォロー解除</button>
+        <?php } ?>
         </div>
         <?php } ?>
       </div>
