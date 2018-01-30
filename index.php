@@ -47,6 +47,10 @@
       $stmt = $dbh->prepare($sql);
       $stmt->execute($data);
 
+
+      //タグ登録機能
+      
+
       //自分の画面へ移動する（データの再送信防止）
       header("Location: index.php");
 
@@ -231,6 +235,13 @@
                 <?php if (isset($error) && ($error["tweet"] == "blank")){ ?>
                   <p class="error">なにかつぶやいてください。</p>
                 <?php  } ?>
+              </div>
+            </div>
+            <!-- タグ -->
+            <div class="form-group">
+              <label class="col-sm-4 control-label">タグ</label>
+              <div class="col-sm-8">
+                <input type="text" name="hashtag" class="form-control" placeholder="例: #Japan #Cebu ">
               </div>
             </div>
           <ul class="paging">
