@@ -2,6 +2,7 @@
   // session_start();
 
   require('function.php');
+  require('tag_function.php');
 
   //ログインチェック
   login_check(); 
@@ -47,9 +48,24 @@
       $stmt = $dbh->prepare($sql);
       $stmt->execute($data);
 
+      //INSERTされたつぶやきのIDを取得
+      $new_tweet_id = $dbh->lastInsertId('tweet_id');
 
       //タグ登録機能
-      
+      // タグの存在チェック（なかったらタグテーブルに保存）
+      // $input_tags = "#なつ #夏 #海外 #セブ"
+      $input_tags = $_POST["hashtag"];
+
+      $input_tags = explode(" #", $input_tags);
+      // $input_tags = array("#なつ","夏","海外","セブ");
+
+      foreach ($input_tags as $tag_each) {
+        $input_tag = str_replace("#", "", $tag_each);
+        exists_tag($input_tag,$dbh);
+      }
+
+      //タグとつぶやきの関連付けをDBに保存
+      create_tweet_tags($new_tweet_id,$input_tags,$dbh);
 
       //自分の画面へ移動する（データの再送信防止）
       header("Location: index.php");
