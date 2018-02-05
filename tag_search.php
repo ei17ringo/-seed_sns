@@ -4,11 +4,14 @@
   $tag_id = $_GET["tag_id"];
 
   //tag名の取得
-  $get_tag_sql = "";
+  $get_tag_sql = "SELECT * FROM `tags` WHERE `id`=".$tag_id;
 
   //SQL実行
+  $stmt = $dbh->prepare($get_tag_sql);
+  $stmt->execute();
 
   //フェッチ
+  $one_tag = $stmt->fetch(PDO::FETCH_ASSOC);
 
   //tagを含んだ一覧の取得
   // SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` 
@@ -17,10 +20,29 @@
   // INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id`
   // WHERE `tag_id` = 4
 
-  $tag_search_sql = "";
+  $tag_search_sql = "SELECT `tweets`.*,`members`.`nick_name`,`members`.`picture_path` ";
+  $tag_search_sql .= " FROM `tweets` INNER JOIN `tweet_tags` ";
+  $tag_search_sql .= " ON `tweets`.`tweet_id` = `tweet_tags`.`tweet_id` ";
+  $tag_search_sql .= " INNER JOIN `members` ON `tweets`.`member_id` = `members`.`member_id` ";
+  $tag_search_sql .= " WHERE `tag_id` = ".$tag_id;
+
   //SQL実行
+  $tags_stmt = $dbh->prepare($tag_search_sql);
+  $tags_stmt->execute();
+
+  // 一覧表示用の配列を用意
+  $tag_search_list = array();
 
   //フェッチ
+  while (1) {
+    $one_tweet = $tags_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($one_tweet == false){
+      break;
+    }
+
+    $tag_search_list[] = $one_tweet;
+  }  
 
 
 ?>
@@ -68,32 +90,32 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 col-md-offset-3 content-margin-top">
-        <h4>#Cebuの検索結果</h4>
+        <h4>#<?php echo $one_tag["tag"]; ?>の検索結果</h4>
         <a href="index.php">&laquo;&nbsp;一覧へ戻る</a>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
+        <?php foreach ($tag_search_list as $tweet) { ?>
+          <div class="msg">
+          <img src="picture_path/<?php echo $tweet["picture_path"]; ?>" width="48" height="48">
           <p>
-            つぶやき４<span class="name"> (Seed kun) </span>
-            [<a href="#">Re</a>]
+            <?php echo $tweet["tweet"]; ?><span class="name"> (<?php echo $tweet["nick_name"]; ?>) </span>
+            [<a href="reply.php?tweet_id=<?php echo $tweet["tweet_id"]; ?>">Re</a>]
           </p>
           <p class="day">
-            <a href="view.html">
-              2016-01-28 18:04
+            <a href="view.php?tweet_id=<?php echo $tweet["tweet_id"]; ?>">
+              <?php 
+              $modify_date = $tweet["modified"];
+              // strtotime 文字型のデータを日時型に変換できる
+              $modify_date = date("Y-m-d H:i",strtotime($modify_date));
+
+              echo $modify_date; 
+
+              ?>
             </a>
           </p>
         </div>
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
-          <p>
-            つぶやき４<span class="name"> (Seed kun) </span>
-            [<a href="#">Re</a>]
-          </p>
-          <p class="day">
-            <a href="view.html">
-              2016-01-28 18:04
-            </a>
-          </p>
-        </div>
+          
+        <?php } ?>
+        
+        
       </div>
     </div>
   </div>
